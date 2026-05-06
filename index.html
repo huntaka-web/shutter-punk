@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SHUTTER PUNK — Photography</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&family=Chakra+Petch:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --acid: #C8FF00;
+    --blood: #FF2200;
+    --sky: #00BFFF;
+    --dark: #0A0A0A;
+    --mid: #1A1A1A;
+    --panel: #111111;
+    --border: #333;
+    --text: #E8E8E0;
+    --muted: #888;
+    --tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Crect width='60' height='60' fill='%230A0A0A'/%3E%3Crect x='0' y='0' width='1' height='60' fill='%23151515'/%3E%3Crect x='0' y='0' width='60' height='1' fill='%23151515'/%3E%3C/svg%3E");
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--dark);
+    background-image: var(--tile);
+    color: var(--text);
+    font-family: 'Chakra Petch', monospace;
+    cursor: crosshair;
+    overflow-x: hidden;
+  }
+
+  /* ---- SCANLINES OVERLAY ---- */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ---- MARQUEE TICKER ---- */
+  .ticker {
+    background: var(--acid);
+    color: #000;
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    letter-spacing: 2px;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 4px 0;
+    border-bottom: 3px solid #000;
+  }
+  .ticker-inner {
+    display: inline-block;
+    animation: ticker 30s linear infinite;
+  }
+  @keyframes ticker {
+    0% { transform: translateX(100vw); }
+    100% { transform: translateX(-100%); }
+  }
+
+  /* ---- NAV ---- */
+  nav {
+    background: var(--panel);
+    border-bottom: 2px solid var(--acid);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: 60px;
+  }
+
+  .logo {
+    font-family: 'VT323', monospace;
+    font-size: 36px;
+    color: var(--acid);
+    letter-spacing: 4px;
+    text-decoration: none;
+    text-shadow: 2px 2px 0 var(--blood), 4px 4px 0 rgba(200,255,0,0.2);
+    animation: glitch 8s infinite;
+  }
+
+  @keyframes glitch {
+    0%, 95%, 100% { text-shadow: 2px 2px 0 var(--blood), 4px 4px 0 rgba(200,255,0,0.2); }
+    96% { text-shadow: -2px 2px 0 var(--sky), 4px -2px 0 var(--blood); transform: translateX(2px); }
+    97% { text-shadow: 2px -2px 0 var(--acid); transform: translateX(-1px); }
+    98% { text-shadow: 2px 2px 0 var(--blood); transform: translateX(0); }
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 0;
+    list-style: none;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+  }
+  .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-left: 1px solid var(--border);
+    transition: all 0.1s;
+    text-transform: uppercase;
+  }
+  .nav-links a:hover {
+    color: var(--acid);
+    background: rgba(200,255,0,0.05);
+  }
+  .nav-links .shop-link a {
+    color: var(--dark);
+    background: var(--blood);
+    border-left-color: var(--blood);
+    font-weight: 700;
+  }
+  .nav-links .shop-link a:hover {
+    background: #FF4422;
+  }
+
+  /* ---- HERO ---- */
+  .hero {
+    position: relative;
+    height: 90vh;
+    min-height: 600px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 3rem 2.5rem;
+    overflow: hidden;
+    border-bottom: 3px solid var(--border);
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(to top, rgba(10,10,10,0.95) 0%, rgba(10,10,10,0.3) 60%, rgba(10,10,10,0.5) 100%),
+      linear-gradient(135deg, #1a2a1a 0%, #0a1520 30%, #1a0a0a 70%, #0a0a1a 100%);
+    z-index: 0;
+  }
+
+  /* Photo mosaic grid in hero */
+  .hero-mosaic {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 3px;
+    z-index: 0;
+    opacity: 0.35;
+  }
+  .mosaic-cell {
+    overflow: hidden;
+  }
+  .mosaic-cell .photo-placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Fake photo placeholders with CSS art */
+  .photo-ph { width: 100%; height: 100%; display: block; }
+  .ph-1 { background: linear-gradient(160deg, #1a3a1a 0%, #0d2b0d 40%, #243324 100%); }
+  .ph-2 { background: linear-gradient(200deg, #0a1a2e 0%, #1a2a3e 60%, #0d1520 100%); }
+  .ph-3 { background: linear-gradient(45deg, #2a1a0a 0%, #3a2010 60%, #1a0a0a 100%); }
+  .ph-4 { background: linear-gradient(110deg, #0d1f0d 0%, #152a15 50%, #0a1a0a 100%); }
+  .ph-5 { background: linear-gradient(250deg, #101828 0%, #1a2535 60%, #0d1520 100%); }
+  .ph-6 { background: linear-gradient(180deg, #1e1212 0%, #2e1a1a 60%, #1a0e0e 100%); }
+  .ph-7 { background: linear-gradient(30deg, #0a1f0a 0%, #152515 50%, #0d200d 100%); }
+  .ph-8 { background: linear-gradient(300deg, #0d1025 0%, #151a35 60%, #0a0f20 100%); }
+  .ph-9 { background: linear-gradient(140deg, #1a2a1a 0%, #243324 50%, #1a2a1a 100%); }
+  .ph-10 { background: linear-gradient(220deg, #201010 0%, #2a1515 60%, #180d0d 100%); }
+  .ph-11 { background: linear-gradient(80deg, #0a1520 0%, #152030 60%, #0a1020 100%); }
+  .ph-12 { background: linear-gradient(320deg, #0f1f0f 0%, #1a2d1a 60%, #0d1a0d 100%); }
+  .ph-13 { background: linear-gradient(50deg, #1e1208 0%, #2a1a0a 60%, #181008 100%); }
+  .ph-14 { background: linear-gradient(170deg, #080f20 0%, #101828 60%, #080d18 100%); }
+  .ph-15 { background: linear-gradient(240deg, #151515 0%, #202020 60%, #0d0d0d 100%); }
+
+  .hero-content { position: relative; z-index: 2; }
+
+  .hero-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 6px;
+    color: var(--acid);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .hero-eyebrow::before {
+    content: '>>>';
+    color: var(--blood);
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .hero-title {
+    font-family: 'VT323', monospace;
+    font-size: clamp(80px, 12vw, 160px);
+    line-height: 0.85;
+    color: var(--text);
+    letter-spacing: -2px;
+    margin-bottom: 1.5rem;
+  }
+  .hero-title span {
+    color: var(--acid);
+    display: block;
+  }
+
+  .hero-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    max-width: 500px;
+    line-height: 1.8;
+    border-left: 2px solid var(--blood);
+    padding-left: 1rem;
+  }
+
+  .hero-cta {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  /* ---- BUTTONS ---- */
+  .btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 0.75rem 1.5rem;
+    border: 2px solid;
+    display: inline-block;
+    transition: all 0.1s;
+    cursor: crosshair;
+    position: relative;
+  }
+  .btn::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 100%;
+    height: 100%;
+    border: 2px solid;
+    z-index: -1;
+    transition: all 0.1s;
+  }
+  .btn-acid {
+    color: var(--acid);
+    border-color: var(--acid);
+    background: transparent;
+  }
+  .btn-acid::after { border-color: var(--acid); }
+  .btn-acid:hover {
+    background: var(--acid);
+    color: var(--dark);
+    transform: translate(-2px, -2px);
+  }
+  .btn-acid:hover::after { transform: translate(4px, 4px); }
+
+  .btn-blood {
+    color: #fff;
+    border-color: var(--blood);
+    background: var(--blood);
+  }
+  .btn-blood::after { border-color: var(--blood); }
+  .btn-blood:hover {
+    background: transparent;
+    color: var(--blood);
+    transform: translate(-2px, -2px);
+  }
+  .btn-blood:hover::after { transform: translate(4px, 4px); }
+
+  /* ---- SECTION HEADERS ---- */
+  .section-header {
+    padding: 3rem 2.5rem 1.5rem;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  .section-header::before {
+    content: attr(data-num);
+    font-family: 'VT323', monospace;
+    font-size: 120px;
+    color: rgba(200,255,0,0.04);
+    position: absolute;
+    right: 2.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    line-height: 1;
+    pointer-events: none;
+  }
+  .section-title {
+    font-family: 'VT323', monospace;
+    font-size: 64px;
+    line-height: 1;
+    color: var(--text);
+    letter-spacing: 2px;
+  }
+  .section-title em {
+    color: var(--acid);
+    font-style: normal;
+  }
+  .section-meta {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-align: right;
+    line-height: 2;
+  }
+
+  /* ---- GALLERY GRID ---- */
+  .gallery-section { padding: 2rem 0; }
+
+  .gallery-filters {
+    padding: 0 2.5rem 1.5rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: crosshair;
+    transition: all 0.1s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    border-color: var(--acid);
+    color: var(--acid);
+    background: rgba(200,255,0,0.05);
+  }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-auto-rows: 120px;
+    gap: 3px;
+    padding: 0 2.5rem;
+  }
+
+  .gallery-item {
+    overflow: hidden;
+    position: relative;
+    cursor: crosshair;
+  }
+  .gallery-item:hover .gallery-overlay { opacity: 1; }
+  .gallery-item:hover .gi-img { transform: scale(1.05); }
+
+  /* Various spanning sizes for mosaic effect */
+  .span-2 { grid-column: span 2; }
+  .span-3 { grid-column: span 3; }
+  .span-4 { grid-column: span 4; }
+  .span-6 { grid-column: span 6; }
+  .row-2 { grid-row: span 2; }
+  .row-3 { grid-row: span 3; }
+
+  .gi-img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+
+  /* CSS photo art for gallery */
+  .gi-landscape-1 { background: linear-gradient(180deg, #1a3a5a 0%, #2a5a3a 30%, #3a5a1a 60%, #1a2a0a 100%); }
+  .gi-landscape-2 { background: linear-gradient(160deg, #0a0a2a 0%, #1a2a4a 40%, #2a4a6a 70%, #3a6a4a 100%); }
+  .gi-city-1 { background: linear-gradient(180deg, #0a0a0a 0%, #1a1a2a 30%, #2a2a3a 60%, #3a3a2a 100%); }
+  .gi-nature-1 { background: linear-gradient(200deg, #0a2a0a 0%, #1a4a1a 40%, #2a6a1a 70%, #1a3a0a 100%); }
+  .gi-portrait-1 { background: linear-gradient(160deg, #2a1a0a 0%, #3a2a1a 40%, #1a0a0a 70%, #2a1a0a 100%); }
+  .gi-city-2 { background: linear-gradient(0deg, #0a0a1a 0%, #1a1a3a 40%, #0a0a2a 70%, #000010 100%); }
+  .gi-landscape-3 { background: linear-gradient(140deg, #1a3a1a 0%, #2a5a2a 40%, #1a4a3a 70%, #0a2a1a 100%); }
+  .gi-portrait-2 { background: linear-gradient(180deg, #1a0a0a 0%, #2a1a1a 40%, #3a2a1a 70%, #2a1a0a 100%); }
+  .gi-abstract-1 { background: linear-gradient(45deg, #0a0a0a 0%, #1a0a1a 40%, #2a0a2a 70%, #1a1a0a 100%); }
+  .gi-landscape-4 { background: linear-gradient(220deg, #0a1a3a 0%, #1a2a5a 40%, #2a3a4a 70%, #1a2a3a 100%); }
+  .gi-city-3 { background: linear-gradient(90deg, #1a1a1a 0%, #0a0a0a 40%, #2a2a2a 70%, #1a1a1a 100%); }
+  .gi-nature-2 { background: linear-gradient(300deg, #0a3a0a 0%, #1a5a1a 40%, #2a4a0a 70%, #0a2a0a 100%); }
+
+  .gallery-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(10,10,10,0.85);
+    opacity: 0;
+    transition: opacity 0.2s;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 0.75rem;
+    border: 1px solid var(--acid);
+  }
+  .go-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--acid);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .go-cat {
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    color: var(--text);
+  }
+
+  /* ---- FEATURED SHOT ---- */
+  .featured-section {
+    margin: 3px 0;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    min-height: 600px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .featured-photo {
+    background: linear-gradient(160deg, #0a1520 0%, #152035 30%, #1a3040 60%, #0d2030 100%);
+    position: relative;
+    overflow: hidden;
+    min-height: 500px;
+  }
+  .featured-photo::after {
+    content: 'SHOT OF THE WEEK';
+    position: absolute;
+    top: 1.5rem;
+    left: 1.5rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 4px;
+    color: var(--acid);
+    background: rgba(0,0,0,0.7);
+    padding: 0.3rem 0.6rem;
+    border: 1px solid var(--acid);
+  }
+  .featured-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, transparent 50%, rgba(10,10,10,0.8) 100%);
+  }
+
+  /* Fake mountain range in featured */
+  .featured-photo svg {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 70%;
+  }
+
+  .featured-info {
+    background: var(--panel);
+    padding: 3rem 2rem;
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .fi-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 4px;
+    color: var(--blood);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+  .fi-title {
+    font-family: 'VT323', monospace;
+    font-size: 56px;
+    line-height: 1;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+  }
+  .fi-desc {
+    font-family: 'Chakra Petch', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--muted);
+    margin-bottom: 2rem;
+    flex: 1;
+  }
+  .fi-meta {
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .meta-item label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 0.3rem;
+  }
+  .meta-item span {
+    font-family: 'VT323', monospace;
+    font-size: 22px;
+    color: var(--acid);
+  }
+
+  /* ---- ABOUT STRIP ---- */
+  .about-strip {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid var(--border);
+  }
+  .about-text {
+    padding: 4rem 2.5rem;
+    border-right: 1px solid var(--border);
+  }
+  .about-visual {
+    padding: 4rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: var(--panel);
+  }
+  .about-tagline {
+    font-family: 'VT323', monospace;
+    font-size: 52px;
+    line-height: 1;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+  }
+  .about-tagline em {
+    color: var(--acid);
+    font-style: normal;
+  }
+  .about-body {
+    font-family: 'Chakra Petch', monospace;
+    font-size: 13px;
+    line-height: 2;
+    color: var(--muted);
+    max-width: 480px;
+    margin-bottom: 2rem;
+  }
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border: 1px solid var(--border);
+  }
+  .stat-box {
+    padding: 1.5rem 1rem;
+    border-right: 1px solid var(--border);
+    text-align: center;
+  }
+  .stat-box:last-child { border-right: none; }
+  .stat-num {
+    font-family: 'VT323', monospace;
+    font-size: 52px;
+    color: var(--acid);
+    display: block;
+    line-height: 1;
+  }
+  .stat-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 0.3rem;
+    display: block;
+  }
+  .skills-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  .skill-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    text-transform: uppercase;
+    position: relative;
+    transition: all 0.2s;
+  }
+  .skill-tag:hover {
+    border-color: var(--acid);
+    color: var(--acid);
+  }
+  .skill-tag::before {
+    content: '◆';
+    color: var(--acid);
+    margin-right: 0.4rem;
+    font-size: 8px;
+  }
+
+  /* ---- SHOP ---- */
+  .shop-section { padding-bottom: 4rem; }
+
+  .shop-grid {
+    padding: 2rem 2.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 3px;
+  }
+
+  .shop-item {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .shop-item:hover {
+    border-color: var(--acid);
+  }
+  .shop-item:hover .si-img { transform: scale(1.03); }
+
+  .si-img-wrap {
+    height: 300px;
+    overflow: hidden;
+    position: relative;
+  }
+  .si-img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+
+  /* Shop photo CSS art */
+  .shop-ph-1 { background: linear-gradient(160deg, #0a1a3a 0%, #1a3a5a 40%, #0d2535 70%, #0a1520 100%); }
+  .shop-ph-2 { background: linear-gradient(200deg, #0a2a0a 0%, #1a4a1a 40%, #2a5a1a 70%, #1a3a0a 100%); }
+  .shop-ph-3 { background: linear-gradient(45deg, #1a0a0a 0%, #2a1a1a 40%, #1a0a0a 70%, #0a0505 100%); }
+  .shop-ph-4 { background: linear-gradient(300deg, #0a0a1a 0%, #1a1a3a 40%, #2a2a4a 70%, #1a1a2a 100%); }
+  .shop-ph-5 { background: linear-gradient(100deg, #1a2a0a 0%, #2a3a1a 40%, #1a3a1a 70%, #0a1a0a 100%); }
+  .shop-ph-6 { background: linear-gradient(250deg, #1a0a1a 0%, #2a1a2a 40%, #1a0a1a 70%, #0a050a 100%); }
+
+  .si-badge {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 0.3rem 0.5rem;
+    text-transform: uppercase;
+  }
+  .badge-new { background: var(--acid); color: #000; }
+  .badge-ltd { background: var(--blood); color: #fff; }
+  .badge-sold { background: var(--border); color: var(--muted); }
+
+  .si-info {
+    padding: 1.25rem;
+    border-top: 1px solid var(--border);
+  }
+  .si-name {
+    font-family: 'VT323', monospace;
+    font-size: 28px;
+    color: var(--text);
+    margin-bottom: 0.25rem;
+  }
+  .si-type {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+  .si-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .si-price {
+    font-family: 'VT323', monospace;
+    font-size: 32px;
+    color: var(--acid);
+  }
+  .btn-cart {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--acid);
+    background: transparent;
+    color: var(--acid);
+    cursor: crosshair;
+    transition: all 0.1s;
+  }
+  .btn-cart:hover {
+    background: var(--acid);
+    color: #000;
+  }
+
+  /* ---- CONTACT ---- */
+  .contact-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-top: 1px solid var(--border);
+    border-bottom: 3px solid var(--acid);
+  }
+  .contact-left {
+    padding: 4rem 2.5rem;
+    border-right: 1px solid var(--border);
+  }
+  .contact-right {
+    padding: 4rem 2.5rem;
+    background: var(--panel);
+  }
+  .contact-title {
+    font-family: 'VT323', monospace;
+    font-size: 72px;
+    line-height: 1;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+  }
+  .contact-sub {
+    font-family: 'Chakra Petch', monospace;
+    font-size: 13px;
+    line-height: 2;
+    color: var(--muted);
+    margin-bottom: 2rem;
+  }
+  .contact-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .contact-link {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: color 0.2s;
+  }
+  .contact-link::before {
+    content: '→';
+    color: var(--acid);
+  }
+  .contact-link:hover { color: var(--acid); }
+
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .form-group label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 0.4rem;
+  }
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    width: 100%;
+    background: var(--dark);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 0.75rem;
+    outline: none;
+    transition: border-color 0.2s;
+    cursor: crosshair;
+  }
+  .form-group input:focus,
+  .form-group textarea:focus,
+  .form-group select:focus {
+    border-color: var(--acid);
+  }
+  .form-group textarea { resize: vertical; min-height: 120px; }
+  .form-group select option { background: var(--dark); }
+
+  /* ---- FOOTER ---- */
+  footer {
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+    padding: 2rem 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: gap;
+  }
+  .footer-logo {
+    font-family: 'VT323', monospace;
+    font-size: 28px;
+    color: var(--acid);
+    letter-spacing: 3px;
+  }
+  .footer-copy {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-align: center;
+  }
+  .footer-links {
+    display: flex;
+    gap: 1.5rem;
+    list-style: none;
+  }
+  .footer-links a {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--acid); }
+
+  /* ---- RETRO DECORATIONS ---- */
+  .divider-acid {
+    height: 3px;
+    background: repeating-linear-gradient(90deg, var(--acid) 0px, var(--acid) 10px, transparent 10px, transparent 15px);
+    margin: 0;
+  }
+
+  .visitor-counter {
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    color: var(--acid);
+    letter-spacing: 3px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .visitor-counter span {
+    background: #000;
+    border: 1px solid var(--acid);
+    padding: 0.1rem 0.4rem;
+    display: inline-block;
+  }
+
+  /* ---- LIGHTBOX ---- */
+  .lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    cursor: crosshair;
+  }
+  .lightbox.open { display: flex; }
+  .lightbox-content {
+    max-width: 80vw;
+    max-height: 80vh;
+    border: 2px solid var(--acid);
+    position: relative;
+  }
+  .lightbox-close {
+    position: absolute;
+    top: -2.5rem;
+    right: 0;
+    font-family: 'VT323', monospace;
+    font-size: 28px;
+    color: var(--acid);
+    cursor: crosshair;
+    letter-spacing: 2px;
+  }
+
+  /* ---- CART NOTIFICATION ---- */
+  .cart-notif {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: var(--acid);
+    color: #000;
+    font-family: 'VT323', monospace;
+    font-size: 22px;
+    letter-spacing: 2px;
+    padding: 0.75rem 1.25rem;
+    border: 2px solid #000;
+    display: none;
+    z-index: 500;
+    animation: slidein 0.2s ease;
+  }
+  @keyframes slidein {
+    from { transform: translateX(120%); }
+    to { transform: translateX(0); }
+  }
+
+  /* ---- SCROLLBAR ---- */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--dark); }
+  ::-webkit-scrollbar-thumb { background: var(--acid); }
+
+  /* ---- SELECTION ---- */
+  ::selection { background: var(--acid); color: #000; }
+</style>
+</head>
+<body>
+
+<!-- Ticker -->
+<div class="ticker">
+  <div class="ticker-inner">
+    ◆◆◆ SHUTTER PUNK PHOTOGRAPHY ◆ EST. 2018 ◆ LANDSCAPES / NATURE / URBAN OBSCURA / PORTRAITS ◆ PRINTS SHIP WORLDWIDE ◆ NEW DROPS EVERY FRIDAY ◆ FILM + DIGITAL ◆ PORTLAND, OR ◆ ALL IMAGES COPYRIGHT SHUTTER PUNK ◆ PRINTS AVAILABLE NOW ◆&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  </div>
+</div>
+
+<!-- Nav -->
+<nav>
+  <a href="#" class="logo">SHUTTER PUNK</a>
+  <ul class="nav-links">
+    <li><a href="#gallery">Gallery</a></li>
+    <li><a href="#featured">Featured</a></li>
+    <li><a href="#about">About</a></li>
+    <li class="shop-link"><a href="#shop">[ SHOP ]</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-mosaic">
+    <div class="mosaic-cell"><div class="photo-ph ph-1"></div></div>
+    <div class="mosaic-cell"><div class="photo-ph ph-2"></div></div>
+    <div class="mosaic-cell"><div class="photo-ph ph-3"></div></div>
+    <div class="mosaic-cell"><div class="photo-ph ph-4"></div></div>
+    <div class="mosaic-cell"><div class="photo-ph ph-5"></div></div>
+    <div class="mosaic-cell"><div class="photo-ph ph-6"></div></div>
+    <div class="mosaic-cell"><div class="photo-ph ph-7"></div></div>
+    <div class="mosaic-cell"><div class="photo-ph ph-8"></div></div>
+    <div class="mosaic-cell"><div class="photo-ph ph-9"></div></div>
+    <div class="mosaic-cell"><div class="photo-ph ph-10"></div></div>
+    <div class="mosaic-cell"><div class="photo-ph ph-11"></div></div>
+    <div class="mosaic-cell"><div class="photo-ph ph-12"></div></div>
+    <div class="mosaic-cell"><div class="photo-ph ph-13"></div></div>
+    <div class="mosaic-cell"><div class="photo-ph ph-14"></div></div>
+    <div class="mosaic-cell"><div class="photo-ph ph-15"></div></div>
+  </div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">PORTFOLIO v3.0 — ONLINE</div>
+    <h1 class="hero-title">
+      FRAME<br>
+      <span>THE RAW.</span>
+    </h1>
+    <p class="hero-sub">
+      LANDSCAPES. URBAN OBSCURA. NATURE.<br>
+      PEOPLE. MOMENTS. PORTLAND, OR.<br>
+      ANALOG SOUL IN A DIGITAL WORLD.
+    </p>
+    <div class="hero-cta">
+      <a href="#gallery" class="btn btn-acid">View Gallery</a>
+      <a href="#shop" class="btn btn-blood">Buy Prints</a>
+    </div>
+  </div>
+</section>
+
+<!-- Gallery -->
+<section id="gallery" class="gallery-section">
+  <div class="section-header" data-num="01">
+    <div>
+      <div class="section-title">THE <em>WORK</em></div>
+    </div>
+    <div class="section-meta">
+      SORTED BY: LATEST<br>
+      VIEWING: ALL SERIES<br>
+      TOTAL: 247 SHOTS
+    </div>
+  </div>
+
+  <div class="gallery-filters">
+    <button class="filter-btn active">ALL</button>
+    <button class="filter-btn">LANDSCAPE</button>
+    <button class="filter-btn">NATURE</button>
+    <button class="filter-btn">URBAN</button>
+    <button class="filter-btn">PORTRAITS</button>
+    <button class="filter-btn">FILM</button>
+    <button class="filter-btn">DIGITAL</button>
+  </div>
+
+  <div class="gallery-grid">
+    <div class="gallery-item span-4 row-3" onclick="openLightbox(this)">
+      <div class="gi-img gi-landscape-1"></div>
+      <div class="gallery-overlay"><div class="go-title">LANDSCAPE — OREGON</div><div class="go-cat">Blue Hour Ridge</div></div>
+    </div>
+    <div class="gallery-item span-4 row-2" onclick="openLightbox(this)">
+      <div class="gi-img gi-city-1"></div>
+      <div class="gallery-overlay"><div class="go-title">URBAN — PORTLAND</div><div class="go-cat">Under the Bridge</div></div>
+    </div>
+    <div class="gallery-item span-4 row-2" onclick="openLightbox(this)">
+      <div class="gi-img gi-nature-1"></div>
+      <div class="gallery-overlay"><div class="go-title">NATURE — COLUMBIA GORGE</div><div class="go-cat">Fog & Fern</div></div>
+    </div>
+    <div class="gallery-item span-2 row-1" onclick="openLightbox(this)">
+      <div class="gi-img gi-portrait-1"></div>
+      <div class="gallery-overlay"><div class="go-title">PORTRAIT</div><div class="go-cat">Skater, SE</div></div>
+    </div>
+    <div class="gallery-item span-2 row-1" onclick="openLightbox(this)">
+      <div class="gi-img gi-abstract-1"></div>
+      <div class="gallery-overlay"><div class="go-title">ABSTRACT</div><div class="go-cat">Concrete</div></div>
+    </div>
+    <div class="gallery-item span-6 row-2" onclick="openLightbox(this)">
+      <div class="gi-img gi-landscape-2"></div>
+      <div class="gallery-overlay"><div class="go-title">LANDSCAPE — CASCADES</div><div class="go-cat">Mount Hood, Pre-Dawn</div></div>
+    </div>
+    <div class="gallery-item span-3 row-2" onclick="openLightbox(this)">
+      <div class="gi-img gi-city-2"></div>
+      <div class="gallery-overlay"><div class="go-title">URBAN — NIGHT</div><div class="go-cat">Neon Rain</div></div>
+    </div>
+    <div class="gallery-item span-3 row-2" onclick="openLightbox(this)">
+      <div class="gi-img gi-landscape-3"></div>
+      <div class="gallery-overlay"><div class="go-title">NATURE — COAST</div><div class="go-cat">Haystack Rock</div></div>
+    </div>
+    <div class="gallery-item span-4 row-2" onclick="openLightbox(this)">
+      <div class="gi-img gi-city-3"></div>
+      <div class="gallery-overlay"><div class="go-title">URBAN — ALLEY</div><div class="go-cat">Forgotten Wall</div></div>
+    </div>
+    <div class="gallery-item span-4 row-2" onclick="openLightbox(this)">
+      <div class="gi-img gi-nature-2"></div>
+      <div class="gallery-overlay"><div class="go-title">NATURE — FOREST</div><div class="go-cat">Old Growth</div></div>
+    </div>
+    <div class="gallery-item span-4 row-2" onclick="openLightbox(this)">
+      <div class="gi-img gi-landscape-4"></div>
+      <div class="gallery-overlay"><div class="go-title">LANDSCAPE — EASTERN OR</div><div class="go-cat">High Desert, Dusk</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider-acid"></div>
+
+<!-- Featured -->
+<section id="featured" class="featured-section">
+  <div class="featured-photo">
+    <svg viewBox="0 0 800 400" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="sky-g" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#0a1020"/>
+          <stop offset="60%" stop-color="#1a2535"/>
+          <stop offset="100%" stop-color="#2a3545"/>
+        </linearGradient>
+        <linearGradient id="mtn-g" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#1a2535"/>
+          <stop offset="100%" stop-color="#0a0f1a"/>
+        </linearGradient>
+        <linearGradient id="snow-g" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#c8d8e8"/>
+          <stop offset="100%" stop-color="#8898a8"/>
+        </linearGradient>
+      </defs>
+      <rect width="800" height="400" fill="url(#sky-g)"/>
+      <!-- Stars -->
+      <circle cx="100" cy="40" r="1" fill="#ffffff" opacity="0.6"/>
+      <circle cx="200" cy="20" r="1.5" fill="#ffffff" opacity="0.8"/>
+      <circle cx="350" cy="55" r="1" fill="#ffffff" opacity="0.5"/>
+      <circle cx="500" cy="30" r="1" fill="#ffffff" opacity="0.7"/>
+      <circle cx="650" cy="15" r="1.5" fill="#ffffff" opacity="0.6"/>
+      <circle cx="750" cy="45" r="1" fill="#ffffff" opacity="0.4"/>
+      <circle cx="420" cy="10" r="1" fill="#ffffff" opacity="0.9"/>
+      <circle cx="80" cy="70" r="0.8" fill="#ffffff" opacity="0.5"/>
+      <circle cx="580" cy="60" r="0.8" fill="#ffffff" opacity="0.6"/>
+      <!-- Far mountains -->
+      <polygon points="0,280 80,180 160,220 240,160 320,200 400,140 480,185 560,155 640,195 720,165 800,200 800,400 0,400" fill="#0f1825" opacity="0.8"/>
+      <!-- Main mountain -->
+      <polygon points="200,400 400,100 600,400" fill="url(#mtn-g)"/>
+      <!-- Snow cap -->
+      <polygon points="360,150 400,100 440,150 420,145 410,130 400,115 390,130 380,145" fill="url(#snow-g)" opacity="0.9"/>
+      <!-- Treeline -->
+      <rect x="0" y="340" width="800" height="60" fill="#0a100a"/>
+      <!-- Trees -->
+      <polygon points="30,340 40,310 50,340" fill="#0d150d"/>
+      <polygon points="60,340 72,305 84,340" fill="#0d150d"/>
+      <polygon points="100,340 110,315 120,340" fill="#0d150d"/>
+      <polygon points="700,340 712,305 724,340" fill="#0d150d"/>
+      <polygon points="740,340 752,310 764,340" fill="#0d150d"/>
+      <polygon points="770,340 780,318 790,340" fill="#0d150d"/>
+      <!-- Moon/sun glow -->
+      <circle cx="680" cy="80" r="25" fill="#c8e8ff" opacity="0.15"/>
+      <circle cx="680" cy="80" r="18" fill="#c8e8ff" opacity="0.2"/>
+      <circle cx="680" cy="80" r="10" fill="#c8f0ff" opacity="0.6"/>
+    </svg>
+    <div class="featured-overlay"></div>
+  </div>
+  <div class="featured-info">
+    <div class="fi-label">◆ Featured Shot — Week 18, 2026</div>
+    <h2 class="fi-title">MOUNT HOOD<br>PRE-DAWN</h2>
+    <p class="fi-desc">
+      Hiked 6 miles in darkness to reach this vantage above the cloud layer. 
+      Waited 3 hours in 28°F before the mountain emerged. 
+      Some shots you plan. Others you endure into existence.
+      Shot on medium format film, developed in Portland.
+    </p>
+    <div class="fi-meta">
+      <div class="meta-item"><label>Camera</label><span>Fuji GW690</span></div>
+      <div class="meta-item"><label>Film</label><span>Portra 800</span></div>
+      <div class="meta-item"><label>Location</label><span>Vista Ridge</span></div>
+      <div class="meta-item"><label>Time</label><span>04:47 AM</span></div>
+    </div>
+    <br>
+    <a href="#shop" class="btn btn-acid" style="margin-top:1rem">Buy This Print</a>
+  </div>
+</section>
+
+<!-- About -->
+<section id="about" class="about-strip">
+  <div class="about-text">
+    <div class="section-header" data-num="03" style="padding:0 0 2rem; border:none;">
+      <div class="section-title">THE <em>SHOOTER</em></div>
+    </div>
+    <p class="about-tagline">SHOOT EVERYTHING.<br><em>WASTE NOTHING.</em></p>
+    <p class="about-body">
+      Based in Portland, OR. I shoot whatever doesn't run fast enough — 
+      mountain ridges, back alleys, fog-soaked coastlines, city walls that 
+      shouldn't be beautiful but are. Seven years with a camera. Three with film. 
+      Prints shipped in cardboard tubes from my living room.
+      <br><br>
+      Available for editorial, landscape, and documentary work.
+      I don't shoot weddings. I do shoot things that feel like the end of the world 
+      in the best possible way.
+    </p>
+    <div class="stat-row">
+      <div class="stat-box">
+        <span class="stat-num">247</span>
+        <span class="stat-label">Portfolio Shots</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-num">14</span>
+        <span class="stat-label">Countries</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-num">7yrs</span>
+        <span class="stat-label">Shooting</span>
+      </div>
+    </div>
+  </div>
+  <div class="about-visual">
+    <div class="section-header" data-num="" style="padding:0 0 2rem; border:none;">
+      <div class="section-title">GEAR &amp;<br><em>METHODS</em></div>
+    </div>
+    <div class="skills-grid">
+      <div class="skill-tag">Fuji GW690 III</div>
+      <div class="skill-tag">Canon AE-1</div>
+      <div class="skill-tag">Sony A7R V</div>
+      <div class="skill-tag">Kodak Portra 400</div>
+      <div class="skill-tag">Ilford HP5+</div>
+      <div class="skill-tag">Cinestill 800T</div>
+      <div class="skill-tag">Darkroom Dev</div>
+      <div class="skill-tag">Lightroom CC</div>
+      <div class="skill-tag">Long Exposure</div>
+      <div class="skill-tag">Golden Hour</div>
+      <div class="skill-tag">Night / Astro</div>
+      <div class="skill-tag">Street Candid</div>
+    </div>
+    <br>
+    <div style="border:1px solid var(--border); padding:1.25rem; margin-top:1rem;">
+      <div class="visitor-counter">
+        VISITORS: 
+        <span>0</span><span>4</span><span>2</span><span>8</span><span>7</span><span>1</span>
+      </div>
+      <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:0.5rem;">
+        ◆ YOU ARE VISITOR #042872
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Shop -->
+<section id="shop" class="shop-section">
+  <div class="section-header" data-num="04">
+    <div>
+      <div class="section-title">THE <em>STORE</em></div>
+    </div>
+    <div class="section-meta">
+      PRINTS SHIP IN 5–7 DAYS<br>
+      FREE SHIPPING OVER $100<br>
+      ALL PRINTS SIGNED + NUMBERED
+    </div>
+  </div>
+
+  <div class="shop-grid">
+    <div class="shop-item">
+      <div class="si-img-wrap">
+        <div class="si-img shop-ph-1"></div>
+        <div class="si-badge badge-new">NEW</div>
+      </div>
+      <div class="si-info">
+        <div class="si-name">MOUNT HOOD, PRE-DAWN</div>
+        <div class="si-type">Fine Art Print — 16×20 / 24×30</div>
+        <div class="si-footer">
+          <div class="si-price">$65</div>
+          <button class="btn-cart" onclick="addToCart('Mount Hood Print')">ADD TO CART</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="shop-item">
+      <div class="si-img-wrap">
+        <div class="si-img shop-ph-2"></div>
+        <div class="si-badge badge-ltd">LTD ED</div>
+      </div>
+      <div class="si-info">
+        <div class="si-name">OLD GROWTH, COLUMBIA GORGE</div>
+        <div class="si-type">Film Print — Edition of 25</div>
+        <div class="si-footer">
+          <div class="si-price">$120</div>
+          <button class="btn-cart" onclick="addToCart('Old Growth Print')">ADD TO CART</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="shop-item">
+      <div class="si-img-wrap">
+        <div class="si-img shop-ph-3"></div>
+      </div>
+      <div class="si-info">
+        <div class="si-name">NEON RAIN, PORTLAND</div>
+        <div class="si-type">Fine Art Print — 11×14 / 16×20</div>
+        <div class="si-footer">
+          <div class="si-price">$45</div>
+          <button class="btn-cart" onclick="addToCart('Neon Rain Print')">ADD TO CART</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="shop-item">
+      <div class="si-img-wrap">
+        <div class="si-img shop-ph-4"></div>
+        <div class="si-badge badge-new">NEW</div>
+      </div>
+      <div class="si-info">
+        <div class="si-name">HIGH DESERT, DUSK</div>
+        <div class="si-type">Fine Art Print — 20×24</div>
+        <div class="si-footer">
+          <div class="si-price">$75</div>
+          <button class="btn-cart" onclick="addToCart('High Desert Print')">ADD TO CART</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="shop-item">
+      <div class="si-img-wrap">
+        <div class="si-img shop-ph-5"></div>
+      </div>
+      <div class="si-info">
+        <div class="si-name">SHUTTER PUNK LOGO TEE</div>
+        <div class="si-type">Heavyweight Cotton — S / M / L / XL / XXL</div>
+        <div class="si-footer">
+          <div class="si-price">$38</div>
+          <button class="btn-cart" onclick="addToCart('Logo Tee')">ADD TO CART</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="shop-item">
+      <div class="si-img-wrap">
+        <div class="si-img shop-ph-6"></div>
+        <div class="si-badge badge-ltd">LTD ED</div>
+      </div>
+      <div class="si-info">
+        <div class="si-name">ZINE VOL. 1 — ANALOG WEST</div>
+        <div class="si-type">56-Page Film Photography Zine</div>
+        <div class="si-footer">
+          <div class="si-price">$22</div>
+          <button class="btn-cart" onclick="addToCart('Zine Vol. 1')">ADD TO CART</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Contact -->
+<section id="contact" class="contact-section">
+  <div class="contact-left">
+    <h2 class="contact-title">HIT<br>ME UP.</h2>
+    <p class="contact-sub">
+      For editorial assignments, gallery inquiries, print licensing, 
+      or just to talk film — the inbox is open. 
+      Response time: usually under 48hrs.
+    </p>
+    <div class="contact-links">
+      <a href="mailto:hello@shutterpunk.com" class="contact-link">hello@shutterpunk.com</a>
+      <a href="#" class="contact-link">@shutterpunk on Instagram</a>
+      <a href="#" class="contact-link">VSCO / shutterpunk</a>
+      <a href="#" class="contact-link">Portland, OR — Available for travel</a>
+    </div>
+  </div>
+  <div class="contact-right">
+    <div class="contact-form">
+      <div class="form-group">
+        <label>Your Name</label>
+        <input type="text" placeholder="WHO ARE YOU">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" placeholder="WHERE TO REPLY">
+      </div>
+      <div class="form-group">
+        <label>Inquiry Type</label>
+        <select>
+          <option>— SELECT —</option>
+          <option>Print Purchase</option>
+          <option>Editorial Assignment</option>
+          <option>Licensing</option>
+          <option>Gallery / Exhibition</option>
+          <option>Collab / Partnership</option>
+          <option>Just Saying Hey</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Message</label>
+        <textarea placeholder="TELL ME WHAT'S UP"></textarea>
+      </div>
+      <button class="btn btn-acid" style="align-self:flex-start" onclick="handleSubmit()">SEND IT →</button>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-logo">SHUTTER PUNK</div>
+  <div class="footer-copy">
+    © 2026 SHUTTER PUNK PHOTOGRAPHY<br>
+    ALL IMAGES PROTECTED — PORTLAND, OR
+  </div>
+  <ul class="footer-links">
+    <li><a href="#">Privacy</a></li>
+    <li><a href="#">Terms</a></li>
+    <li><a href="#">Shipping</a></li>
+    <li><a href="#">RSS Feed</a></li>
+  </ul>
+</footer>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <div class="lightbox-content" onclick="event.stopPropagation()">
+    <div class="lightbox-close" onclick="closeLightbox()">[ CLOSE X ]</div>
+    <div id="lightbox-img" style="width:600px;height:400px;"></div>
+  </div>
+</div>
+
+<!-- Cart Notification -->
+<div class="cart-notif" id="cart-notif"></div>
+
+<script>
+  // Filter buttons
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  // Lightbox
+  function openLightbox(el) {
+    const img = el.querySelector('.gi-img');
+    const overlay = el.querySelector('.gallery-overlay');
+    const title = overlay ? overlay.querySelector('.go-cat').textContent : '';
+    const lb = document.getElementById('lightbox');
+    const lbImg = document.getElementById('lightbox-img');
+    lbImg.className = img.className.replace('gi-img','').trim();
+    lbImg.style.background = getComputedStyle(img).background;
+    lb.classList.add('open');
+  }
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+  }
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape') closeLightbox();
+  });
+
+  // Cart notification
+  function addToCart(item) {
+    const notif = document.getElementById('cart-notif');
+    notif.textContent = '◆ ADDED: ' + item.toUpperCase();
+    notif.style.display = 'block';
+    setTimeout(() => { notif.style.display = 'none'; }, 2500);
+  }
+
+  // Contact submit
+  function handleSubmit() {
+    const btn = event.target;
+    btn.textContent = 'SENT ✓';
+    btn.style.color = 'var(--acid)';
+    btn.style.background = 'transparent';
+    setTimeout(() => { btn.textContent = 'SEND IT →'; btn.style.color = ''; btn.style.background = ''; }, 3000);
+  }
+
+  // Visitor counter animation
+  let count = 42871;
+  setInterval(() => {
+    count++;
+    const digits = count.toString().padStart(6, '0').split('');
+    const spans = document.querySelectorAll('.visitor-counter span');
+    spans.forEach((s, i) => s.textContent = digits[i]);
+  }, 8000);
+</script>
+
+</body>
+</html>
